@@ -13,7 +13,12 @@
       </div>   
     </div>
     <div class="game-field">
-        <game-tile :name="i" v-for="i in listTile" :key="i"></game-tile>
+      <game-tile v-for="tile in listTiles"
+        :name="tile.currentPosition" 
+        :positionCorrect="tile.finishPosition === tile.currentPosition" 
+        :positionUseful="canMove(tile)" 
+        :key="tile.finishPosition">
+      </game-tile>
     </div>
   </div>
 </template>
@@ -27,7 +32,41 @@ export default {
     return {
       time: 0,
       step: 0,
-      listTile: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0],
+      listTiles: [
+        // { finishPosition: 1, currentPosition: 1 },
+        // { finishPosition: 2, currentPosition: 2 },
+        // { finishPosition: 3, currentPosition: 3 },
+        // { finishPosition: 4, currentPosition: 4 },
+        // { finishPosition: 5, currentPosition: 5 },
+        // { finishPosition: 6, currentPosition: 6 },
+        // { finishPosition: 7, currentPosition: 7 },
+        // { finishPosition: 8, currentPosition: 8 },
+        // { finishPosition: 9, currentPosition: 9 },
+        // { finishPosition: 10, currentPosition: 10 },
+        // { finishPosition: 11, currentPosition: 11 },
+        // { finishPosition: 12, currentPosition: 12 },
+        // { finishPosition: 13, currentPosition: 13 },
+        // { finishPosition: 14, currentPosition: 14 },
+        // { finishPosition: 15, currentPosition: 15 },
+        // { finishPosition: 0, currentPosition: 0 },
+
+        { currentPosition: 1, finishPosition: 1 },
+        { currentPosition: 2, finishPosition: 2 },
+        { currentPosition: 3, finishPosition: 3 },
+        { currentPosition: 4, finishPosition: 4 },
+        { currentPosition: 5, finishPosition: 5 },
+        { currentPosition: 6, finishPosition: 6 },
+        { currentPosition: 7, finishPosition: 7 },
+        { currentPosition: 8, finishPosition: 8 },
+        { currentPosition: 9, finishPosition: 9 },
+        { currentPosition: 10, finishPosition: 10 },
+        { currentPosition: 11, finishPosition: 11 },
+        { currentPosition: 12, finishPosition: 12 },
+        { currentPosition: 13, finishPosition: 13 },
+        { currentPosition: 14, finishPosition: 14 },
+        { currentPosition: 15, finishPosition: 15 },
+        { currentPosition: 0, finishPosition: 0 },
+      ], 
     }
   },
   created() {
@@ -40,9 +79,24 @@ export default {
       this.createBoard();
     },
     createBoard() {
-      this.listTile = this.listTile.sort(() => Math.random() - 0.5);
+      //алгоритм «Тасование Фишера — Йетса»
+      for (let i = this.listTiles.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1))
+        let t = this.listTiles[i].currentPosition
+        this.listTiles[i].currentPosition = this.listTiles[j].currentPosition
+        this.listTiles[j].currentPosition = t
+      }
+    },
+    canMove(tile) {
+      const tempTilePosition = tile.finishPosition - 1 //т.к. нумерация начинается с 1 и дальше удобнее понять алгоритм решил создать переменную
+      if (this.listTiles[tempTilePosition + 1] && this.listTiles[tempTilePosition + 1].currentPosition === 0) {
+        return true
+      }
+      if (this.listTiles[tempTilePosition - 1] && this.listTiles[tempTilePosition - 1].currentPosition === 0) {
+        return true
+      }
     }
-  }
+  }, 
 }
 </script>
 
