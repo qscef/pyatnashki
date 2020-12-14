@@ -1,0 +1,43 @@
+.game-tile {
+  background: $background-tile-color;
+  border-radius: 5px;
+  height: 85px;
+  width: 85px;
+  line-height: 80px;
+  font-size: 32px;
+  color: $text-main-color;
+  text-align: center;
+  border: none;
+  outline: none;
+
+  &.empty {
+    opacity: 0;
+  }
+
+  &.correct {
+    background: $accept-color;
+  }
+
+  &.useful {
+    cursor: pointer;
+    border: 2px solid $accept-color;
+
+    &:hover {
+      animation: upTile 1s ease-in-out forwards;
+    }
+  }
+
+  &.moving {
+    border: 2px solid $accept-color;
+    position: absolute;
+  }
+}
+
+@keyframes upTile {
+  from {
+  background: $background-tile-color ;
+  }
+  to {
+  background: $accept-color ;
+  }
+}

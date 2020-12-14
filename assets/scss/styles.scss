@@ -3,6 +3,6 @@ $background-field-color: #a8a0b7;
 $background-tile-color: #d6cce4;
 $text-main-color: #686475;
 $accept-color: #1DC960;
-$breakpoint: 600px;
 
-@import 'components/tile.scss';
+@import 'components/gameTile.scss';
+@import 'main.scss';
