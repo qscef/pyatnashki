@@ -1,24 +1,32 @@
 <template>
   <div class="main">
-    <div class="header">
-      Пятнашки
+    <div class="game-win" v-if="isWin">
+      <h2>Поздравляем!</h2>
+      <div>Вы справились за</div>
+      <div> {{ convertTime.min ? convertTime.min + 'м и ': '' }} {{ convertTime.sec }} с</div>
+      <div>сделав {{step}} ходов</div>
+      <div class="menu menu_modal">
+        <div class="menu__element menu__element_restart" @click="restart()">Заново</div>
+      </div>
     </div>
+    <div class="header">Пятнашки</div>
     <div class="menu">
       <div class="menu__element">Время
-        <div>{{time}}</div>
+        <div> {{ convertTime.min ? convertTime.min + 'м ': '' }} {{ convertTime.sec }} с</div>
       </div>
-      <div class="menu__element menu__element_restart" @click="restart()">Рестарт</div>
+      <div class="menu__element menu__element_restart" @click="restart()">Заново</div>
       <div class="menu__element">Ходов
         <div>{{step}}</div>
       </div>   
     </div>
     <div class="game-field">
       <game-tile v-for="tile in listTiles"
-        :name="tile.currentPosition" 
-        :positionCorrect="tile.finishPosition === tile.currentPosition" 
-        :positionUseful="canMove(tile)" 
-        :key="tile.finishPosition">
-      </game-tile>
+        :name="tile.name" 
+        :positionCorrect="tile.position === tile.name" 
+        :positionUseful="tile.positionUseful" 
+        :key="tile.position"
+        @move="move($event)"
+      />
     </div>
   </div>
 </template>
@@ -30,51 +38,37 @@ export default {
   components: { gameTile },
   data() {
     return {
-      time: 0,
+      convertTime: {min: 0, sec: 0},
       step: 0,
+      positionZeroTile: 16,
       listTiles: [
-        // { finishPosition: 1, currentPosition: 1 },
-        // { finishPosition: 2, currentPosition: 2 },
-        // { finishPosition: 3, currentPosition: 3 },
-        // { finishPosition: 4, currentPosition: 4 },
-        // { finishPosition: 5, currentPosition: 5 },
-        // { finishPosition: 6, currentPosition: 6 },
-        // { finishPosition: 7, currentPosition: 7 },
-        // { finishPosition: 8, currentPosition: 8 },
-        // { finishPosition: 9, currentPosition: 9 },
-        // { finishPosition: 10, currentPosition: 10 },
-        // { finishPosition: 11, currentPosition: 11 },
-        // { finishPosition: 12, currentPosition: 12 },
-        // { finishPosition: 13, currentPosition: 13 },
-        // { finishPosition: 14, currentPosition: 14 },
-        // { finishPosition: 15, currentPosition: 15 },
-        // { finishPosition: 0, currentPosition: 0 },
-
-        { currentPosition: 1, finishPosition: 1 },
-        { currentPosition: 2, finishPosition: 2 },
-        { currentPosition: 3, finishPosition: 3 },
-        { currentPosition: 4, finishPosition: 4 },
-        { currentPosition: 5, finishPosition: 5 },
-        { currentPosition: 6, finishPosition: 6 },
-        { currentPosition: 7, finishPosition: 7 },
-        { currentPosition: 8, finishPosition: 8 },
-        { currentPosition: 9, finishPosition: 9 },
-        { currentPosition: 10, finishPosition: 10 },
-        { currentPosition: 11, finishPosition: 11 },
-        { currentPosition: 12, finishPosition: 12 },
-        { currentPosition: 13, finishPosition: 13 },
-        { currentPosition: 14, finishPosition: 14 },
-        { currentPosition: 15, finishPosition: 15 },
-        { currentPosition: 0, finishPosition: 0 },
+        { name: 1, position: 1 },
+        { name: 2, position: 2 },
+        { name: 3, position: 3 },
+        { name: 4, position: 4 },
+        { name: 5, position: 5 },
+        { name: 6, position: 6 },
+        { name: 7, position: 7 },
+        { name: 8, position: 8 },
+        { name: 9, position: 9 },
+        { name: 10, position: 10 },
+        { name: 11, position: 11 },
+        { name: 12, position: 12 },
+        { name: 13, position: 13 },
+        { name: 14, position: 14 },
+        { name: 15, position: 15 },
+        { name: 0, position: 16 },
       ], 
     }
   },
   created() {
     this.createBoard();
+    this.timer();
   },
   methods: {
     restart() {
-      this.time= 0;
+      this.convertTime.sec = 0;
+      this.convertTime.min = 0;
       this.step = 0;
       this.createBoard();
     },
@@ -82,21 +76,72 @@ export default {
       //алгоритм «Тасование Фишера — Йетса»
       for (let i = this.listTiles.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1))
-        let t = this.listTiles[i].currentPosition
-        this.listTiles[i].currentPosition = this.listTiles[j].currentPosition
-        this.listTiles[j].currentPosition = t
+        let t = this.listTiles[i].name
+        this.listTiles[i].name = this.listTiles[j].name
+        this.listTiles[j].name = t
+      }
+      this.canMove();
+    },
+    canMove() { // поиск возможных перемещений
+      for (let i = 0; i < this.listTiles.length; i++) {
+        this.listTiles[i].positionUseful = false
+        if (this.listTiles[i].name === 0) {
+          this.positionZeroTile = this.listTiles[i].position - 1  // т.к. нумерация начинается с 1
+        }
+      }
+      //соседи справа
+      if ([3,7,11,15].indexOf(this.positionZeroTile) === -1) { // если 0 не в правой колонке
+        this.listTiles[this.positionZeroTile + 1].positionUseful = true
+      }
+      //соседи слева
+      if ([0,4,8,12].indexOf(this.positionZeroTile) === -1) { // если 0 не в левой колонке
+        this.listTiles[this.positionZeroTile - 1].positionUseful = true
+      }
+      //соседи сверху
+      if ([0,1,2,3].indexOf(this.positionZeroTile) === -1) { // если 0 не в верхней строке
+        this.listTiles[this.positionZeroTile - 4].positionUseful = true
+      }
+      //соседи снизу
+      if ([12,13,14,15].indexOf(this.positionZeroTile) === -1) { // если 0 не в нижней строке
+        this.listTiles[this.positionZeroTile + 4].positionUseful = true
       }
     },
-    canMove(tile) {
-      const tempTilePosition = tile.finishPosition - 1 //т.к. нумерация начинается с 1 и дальше удобнее понять алгоритм решил создать переменную
-      if (this.listTiles[tempTilePosition + 1] && this.listTiles[tempTilePosition + 1].currentPosition === 0) {
-        return true
+    move(moveTile) {
+      for (let i = 0; i < this.listTiles.length; i++) {
+        if (this.listTiles[i].name === moveTile) {
+          this.listTiles[this.positionZeroTile].name = this.listTiles[i].name // на позицию старого "0" ставим новый блок
+          this.positionZeroTile = this.listTiles[i].position - 1 // обновляем позицию нового "0" т.к. нумерация начинается с 1
+          this.listTiles[this.positionZeroTile].name = 0 // присваеваем новому "0" -> 0
+          break
+        }
       }
-      if (this.listTiles[tempTilePosition - 1] && this.listTiles[tempTilePosition - 1].currentPosition === 0) {
-        return true
-      }
+      this.step += 1
+      this.canMove()
+    },
+    timer() {
+      setInterval(() => {
+        if (this.isWin) {
+          return
+        }
+        if (this.convertTime.sec == 59) {
+          this.convertTime.min += 1
+          this.convertTime.sec = 0
+        } else {
+          this.convertTime.sec += 1
+        }
+      }, 1000)
     }
   }, 
+  computed: {
+    isWin() {
+      for (let i = 0; i < this.listTiles.length; i++) {
+        if (this.listTiles[i].name !== 0 && this.listTiles[i].name !== this.listTiles[i].position) {
+          return false
+        }
+      }
+      return true
+    }
+  },
 }
 </script>
 
@@ -107,6 +152,7 @@ export default {
     width: 400px;
     background: $background-color;
     border-radius: 10px;
+    position: relative;
 
     .header {
       text-align: center;
@@ -120,6 +166,15 @@ export default {
       display: flex;
       justify-content: space-around;
       margin-bottom: 10px;
+
+      &.menu_modal {
+        margin-bottom: 0;
+        margin-top: 10px;
+
+        .menu__element_restart {
+          height: 30px;
+        }
+      }
 
       .menu__element {
         width: 100px;
@@ -145,6 +200,18 @@ export default {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       grid-gap: 5px;
+    }
+
+    .game-win {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #f5edfa;
+      border-radius: 44px;
+      padding: 20px;
+      border: 2px solid #686475;
+      text-align: center;
     }
   }
 </style>

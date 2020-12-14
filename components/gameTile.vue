@@ -1,7 +1,10 @@
 <template>
-  <div class="game-tile" :class="{'empty': name === 0, 'correct': positionCorrect, 'useful':positionUseful}">
+  <button class="game-tile" 
+    :class="{'empty': name === 0, 'correct': positionCorrect, 'useful' : positionUseful}"
+    :disabled="!positionUseful"
+    @click="$emit('move', name)">
     {{ name }}
-  </div>
+  </button>
 </template>
 
 <script>
@@ -25,6 +28,8 @@ export default {
     font-size: 32px;
     color: $text-main-color;
     text-align: center;
+    border: none;
+    outline: none;
 
     &.empty {
       opacity: 0;
@@ -36,8 +41,6 @@ export default {
 
     &.useful {
       cursor: pointer;
-      width: 81px;
-      height: 81px;
       border: 2px solid $accept-color;
 
       &:hover {
